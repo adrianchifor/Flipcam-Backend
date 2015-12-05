@@ -23,8 +23,39 @@ var port = 5000;
 // Create our router
 var router = express.Router();
 
-videoconcat.connect();
-//todo: call videoconcat.concat(data) when a task is required
+var videoReady = function(name) {
+    //TODO: save change of state to database
+    //for now just print to console
+    console.log(name+" is ready");
+}
+
+
+videoconcat.connect(videoReady);
+
+//TODO: call videoconcat.concat(data) when a task is required
+//TODO: REMOVE this
+router.get('/test', function(req, res) {
+    var data = {
+        "cuts": [{
+            "start": "00:00:00.0",
+            "stop": "00:00:02.0",
+            "video": "IMG_1985.MOV"
+        }, {
+            "start": "00:00:02.0",
+            "stop": "00:00:04.0",
+            "video": "IMG_0314.MOV"
+        }
+        ],
+        "output": "joined.MOV"
+    };
+
+    videoconcat.concat(data);
+	res.statusCode = 200;
+	res.json({
+		key: 'abc'
+	});
+});
+//end TODO
 
 router.get('/session', function(req, res) {
 	var lat = req.param('lat');
