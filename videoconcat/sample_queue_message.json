@@ -1,0 +1,13 @@
+{
+	"session_key": "123",
+	"videos": ["blabla", "blibli"],
+	"cuts": [{
+		"start": 0,
+		"stop": 5,
+		"video": "blabla"
+	}, {
+		"start": 5,
+		"stop": 10,
+		"video": "blibli"
+	}]
+}
