@@ -2,4 +2,5 @@ $ virtualenv videoconcat-env
 $ source videoconcat-env/bin/activate
 $ pip install pika
 $ brew install rabbitmq
+$ brew install ffmpeg
 $ rabbitmq-server
