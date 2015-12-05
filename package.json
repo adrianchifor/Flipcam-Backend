@@ -1,0 +1,14 @@
+{
+    "name": "flipcam-api",
+    "main": "server.js",
+    "repository": {
+        "type": "git",
+        "url": "https://bitbucket.org/adrianchifor/hackdisrupt-backend"
+    },
+    "dependencies": {
+        "express": "~4.13.3",
+        "body-parser": "~1.14.1",
+        "mongoose": "~4.2.9",
+        "multer": "~1.1.0"
+    }
+}
