@@ -16,10 +16,15 @@ var Session = require('./app/models/session.js')
 var Participant = require('./app/models/participant.js')
 var Segment = require('./app/models/segment.js')
 
+var videoconcat = require('./app/videoconcatjs/videoconcat.js')
+
 var port = 5000;
 
 // Create our router
 var router = express.Router();
+
+videoconcat.connect();
+//todo: call videoconcat.concat(data) when a task is required
 
 router.get('/session', function(req, res) {
 	var lat = req.param('lat');
