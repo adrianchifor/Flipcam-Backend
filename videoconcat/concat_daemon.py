@@ -12,9 +12,22 @@ channel.queue_declare(queue=config["queue"])
 
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
-def callback(ch, method, properties, body):
+def cut(video_path, start, end):
+    output = str(start)+"__"+video_path
+    pass
 
-    print " [x] Received %r" % (body,)
+def concatenate(videos):
+    f = open("list.txt", "w")
+    for v in videos:
+        f.write()
+        ["ffmpeg", "-f", "concat", "-i", "mylist.txt", "-c", "copy", job_data[output]]
+        pass
+
+def callback(ch, method, properties, body):
+    job_data = json.loads(body)
+    print " [x] Received new job"
+    print " [x]   session: ", job_data["session_key"]
+    print " [x]   videos: ", ", ".join(job_data["videos"])
 
 channel.basic_consume(callback,
                       queue=config["queue"],

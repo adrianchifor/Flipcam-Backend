@@ -2,7 +2,7 @@
 import pika, json
 from config import config
 
-f = open("sample_queue_message", "r")
+f = open("sample_queue_message.json", "r")
 sample_data = json.load(f)
 
 
