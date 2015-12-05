@@ -13,8 +13,8 @@ channel.queue_declare(queue=config["queue"])
 
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
-def cut(video_path, start, end):
-    output = str(start)+"__"+video_path
+def cut(video_path, start, end, number):
+    output = str(number)+"__"+video_path
     call(["ffmpeg", "-i", video_path, "-ss", str(start), "-to", str(end), output])
     return output
 
@@ -30,10 +30,10 @@ def callback(ch, method, properties, body):
     job_data = json.loads(body)
     segments = []
     print " [x] Received new job"
-    print " [x]   session: ", job_data["session_key"]
-    print " [x]   videos: ", ", ".join(job_data["videos"])
+    number = 0
     for c in job_data["cuts"]:
-        segment = cut(c["video"], c["start"], c["stop"])
+        segment = cut(c["video"], c["start"], c["stop"], number)
+        number += 1
         print " [x]   cut ", c["video"], " from ", c["start"], " to ", c["stop"],". Saved to ", segment
         segments.append(segment)
 
