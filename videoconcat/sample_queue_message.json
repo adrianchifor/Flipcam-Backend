@@ -1,0 +1,15 @@
+{
+	"session_key": "123",
+	"videos": ["blabla.m4v", "blibli.m4v"],
+	"cuts": [{
+		"start": 0,
+		"stop": 5,
+		"video": "blabla.m4v"
+	}, {
+		"start": 5,
+		"stop": 10,
+		"video": "blibli.m4v"
+	}
+    ],
+    "output": "asdfasdf.m4v"
+}
