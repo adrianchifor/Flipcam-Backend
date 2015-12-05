@@ -3,13 +3,17 @@
 	"videos": ["blabla.m4v", "blibli.m4v"],
 	"cuts": [{
 		"start": 0,
-		"stop": 5,
-		"video": "blabla.m4v"
+		"stop": 2,
+        "video": "IMG_1985.MOV"
 	}, {
-		"start": 5,
-		"stop": 10,
-		"video": "blibli.m4v"
+		"start": 2,
+		"stop": 4,
+        "video": "IMG_0314.MOV"
+	}, {
+		"start": 4,
+		"stop": 5,
+        "video": "IMG_1985.MOV"
 	}
     ],
-    "output": "asdfasdf.m4v"
+    "output": "joined.MOV"
 }
