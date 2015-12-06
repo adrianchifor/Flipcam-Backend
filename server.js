@@ -116,16 +116,161 @@ router.get('/session', function(req, res) {
 
 router.get('/segment', function(req, res) {
 	var participantKey = req.param('key');
+	var readyTimestamp = req.param('readyTimestamp');
 
-	res.statusCode = 200;
-	res.json({
-		start: 1449335663643,
-		end: 1449335665863
+	var segmentLength = 5000;
+
+	if (sessionCloseTasks[participantKey]) {
+		clearTimeout(sessionCloseTasks[participantKey]);
+		delete sessionCloseTasks[participantKey];
+	}
+
+	Session.find({
+		participantKeys: participantKey
+	}).where("active").equals(true)
+	.limit(1).exec(function(err, session) {
+		if (err) {
+			res.statusCode = 500;
+			res.json({
+				message: "Error"
+			});
+			return;
+		}
+
+		if (session.length == 0) {
+			res.statusCode = 404;
+			res.json({
+				message: "Session not found"
+			});
+			return;
+		}
+
+		var newSegment = new Segment();
+		newSegment.participantKey = participantKey;
+
+		if (session[0].segments.length == 0) {
+			newSegment.startTimestamp = readyTimestamp;
+			newSegment.stopTimestamp = parseInt(readyTimestamp) + segmentLength;
+			newSegment.save(function(err) {
+				if (err) {
+					res.statusCode = 500;
+					res.json({
+						message: "Error"
+					});
+					return;
+				}
+
+				session[0].segments.push(newSegment._id);
+				session[0].save(function(err) {
+					if (err) {
+						res.statusCode = 500;
+						res.json({
+							message: "Error"
+						});
+						return;
+					}
+
+					sessionCloseTasks[participantKey] = setTimeout(function() {
+						closeSession(participantKey);
+					}, 7000);
+
+					res.statusCode = 200;
+					res.json({
+						startTimestamp: newSegment.startTimestamp,
+						stopTimestamp: newSegment.stopTimestamp
+					});
+				})
+			});
+		} else {
+			Segment.findById(session[0].segments[session[0].segments.length-1],
+				function(err, segment) {
+
+				if (err) {
+					res.statusCode = 500;
+					res.json({
+						message: "Error"
+					});
+					return;
+				}
+
+				if (!segment) {
+					res.statusCode = 500;
+					res.json({
+						message: "Error"
+					});
+					return;
+				}
+
+				newSegment.startTimestamp = parseInt(segment.stopTimestamp) + 1;
+				newSegment.stopTimestamp = parseInt(segment.stopTimestamp) + 1 + segmentLength;
+				newSegment.save(function(err) {
+					if (err) {
+						res.statusCode = 500;
+						res.json({
+							message: "Error"
+						});
+						return;
+					}
+
+					session[0].segments.push(newSegment._id);
+					session[0].save(function(err) {
+						if (err) {
+							res.statusCode = 500;
+							res.json({
+								message: "Error"
+							});
+							return;
+						}
+
+						sessionCloseTasks[participantKey] = setTimeout(function() {
+							closeSession(participantKey);
+						}, 7000);
+
+						res.statusCode = 200;
+						res.json({
+							startTimestamp: newSegment.startTimestamp,
+							stopTimestamp: newSegment.stopTimestamp
+						});
+					})
+				});
+			});
+		}
 	});
 });
 
 router.get('/recording', function(req, res) {
 	var participantKey = req.param('key');
+function closeSession(participantKey) {
+	Session.find({
+		participantKeys: participantKey
+	}).where("active").equals(true)
+	.limit(1).exec(function(err, session) {
+		if (err) {
+			console.log("Failed to close session");
+			return;
+		}
+
+		if (session.length == 0) {
+			return;
+		}
+
+		session[0].active = false;
+		session[0].save(function(err) {
+			if (err) {
+				console.log("Failed to close session");
+				return;
+			}
+
+			console.log("Session " + session[0]._id + " has been closed");
+
+			if (sessionCloseTasks[participantKey]) {
+				delete sessionCloseTasks[participantKey];
+			}
+
+			// TODO: call python thingy to construct final video
+		})
+	});
+}
 
 	res.statusCode = 200;
 	res.json({
