@@ -14,23 +14,43 @@ app.use(bodyParser.json());
 
 mongoose.connect('mongodb://localhost/flipcam');
 
-var videoReady = function(name) {
-    //TODO: save change of state to database
-    //for now just print to console
-    console.log(name+" is ready");
-}
-
-videoconcat.connect(videoReady);
-
 var Session = require('./app/models/session.js')
 var Participant = require('./app/models/participant.js')
 var Segment = require('./app/models/segment.js')
 
 var serverIp = "31.187.70.159";
-
 var port = 5000;
 
 var sessionCloseTasks = {};
+
+var videoReady = function(name) {
+	console.log(name);
+
+    Session.find({
+		finalUrl: name
+	}).limit(1).exec(function(err, session) {
+		if (err) {
+			console.log(name+" failed to set ready");
+			return;
+		}
+
+		if (session.length == 0) {
+			console.log(name+" not found. Failed to set ready");
+			return;
+		}
+
+		session[0].ready = true;
+		session[0].save(function(err) {
+			if (err) {
+				return;
+			}
+
+			console.log(name+" is ready");
+		})
+	});
+}
+
+videoconcat.connect(videoReady);
 
 // Create our router
 var router = express.Router();
@@ -274,36 +294,58 @@ function closeSession(participantKey) {
 			if (sessionCloseTasks[participantKey]) {
 				delete sessionCloseTasks[participantKey];
 			}
-
-			// TODO: call python thingy to construct final video
 		})
 	});
 }
 
-//TODO: call videoconcat.concat(data) when a task is required
-//TODO: REMOVE this
-router.get('/test', function(req, res) {
-    var data = {
-        "cuts": [{
-            "start": "00:00:00.0",
-            "stop": "00:00:02.0",
-            "video": "IMG_1985.MOV"
-        }, {
-            "start": "00:00:02.0",
-            "stop": "00:00:04.0",
-            "video": "IMG_0314.MOV"
-        }
-        ],
-        "output": "joined.MOV"
-    };
+function videoConcatenate(session) {
+	var cutsArray = [];
 
-    videoconcat.concat(data);
-	res.statusCode = 200;
-	res.json({
-		key: 'abc'
+	Segment.find({
+		'_id': { $in: session.segments }
+	}).exec(function(err, segments) {
+		if (err) {
+			return;
+		}
+
+		if (segments.length == 0) {
+			return;
+		}
+
+		for (var i = 0; i < segments.length; i++) {
+			Participant.findById(segments[i].participantKey, function(err, participant) {
+				if (err) {
+					return;
+				}
+
+				if (!participant) {
+					return;
+				}
+
+				var startMs = parseInt(segments[i].startTimestamp) -
+					parseInt(participant.startedRecording);
+
+				var stopMs = parseInt(segments[i].stopTimestamp) -
+					parseInt(participant.startedRecording);
+
+				var cutpoint = {
+					start: parseInt(startMs)/1000,
+					stop: parseInt(stopMs)/1000,
+					video: participant.uploadUrl
+				};
+
+				cutsArray.push(cutpoint);
+			});
+		}
+
+		var data = {
+	        cuts: cutsArray,
+	        output: session.finalUrl
+	    };
+
+		videoconcat.concat(data);
 	});
-});
-//end TODO
+}
 
 router.get('/recordings', function(req, res) {
 	var readySessions = [];
@@ -370,9 +412,59 @@ router.post('/upload', multer({ dest: '/data/www/uploads/'}).single('video'),
 				return;
 			}
 
-			res.statusCode = 200;
-			res.json({
-				message: "Uploaded"
+			Session.find({
+				participantKeys: participantKey
+			}).limit(1).exec(function(err, session) {
+				if (err) {
+					res.statusCode = 200;
+					res.json({
+						message: "Uploaded"
+					});
+				}
+
+				if (session.length == 0) {
+					res.statusCode = 200;
+					res.json({
+						message: "Uploaded"
+					});
+				}
+
+				var allFinished = false;
+
+				Participant.find({
+					'_id': { $in: session[0].participantKeys }
+				}).exec(function(err, participants) {
+					if (err) {
+						res.statusCode = 200;
+						res.json({
+							message: "Uploaded"
+						});
+					}
+
+					if (participants.length == 0) {
+						res.statusCode = 200;
+						res.json({
+							message: "Uploaded"
+						});
+					}
+
+					for (var i = 0; i < participants.length; i++) {
+						allFinished = participants[i].uploaded;
+
+						if (!allFinished) {
+							break;
+						}
+					}
+
+					if (allFinished) {
+						videoConcatenate(session[0]);
+					}
+
+					res.statusCode = 200;
+					res.json({
+						message: "Uploaded"
+					});
+				});
 			});
 		});
 	});
