@@ -351,7 +351,9 @@ function videoConcatenate(session) {
 router.get('/recordings', function(req, res) {
 	var readySessions = [];
 
-	Session.find().where("ready").equals(true).limit(1000).exec(function(err, sessions) {
+	Session.find().where("ready").equals(true).limit(1000).sort({created: -1})
+		.exec(function(err, sessions) {
+
 		if (err) {
 			res.statusCode = 500;
 			res.json({
@@ -376,7 +378,7 @@ router.get('/recordings', function(req, res) {
 		}
 
 		res.statusCode = 200;
-		res.json(JSON.stringify(readySessions));
+		res.json(readySessions);
 	});
 });
 
