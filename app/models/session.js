@@ -2,10 +2,13 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var Session = new Schema({
-    id: Number,
-    participantKeys: [Number],
-    coordinates: [Number],
-    segments: [Number],
+    participantKeys: [String],
+    location: {
+        type: [Number],
+        index: '2d'
+    },
+    segments: [String],
+    created: Number,
     finalUrl: String,
     ready: Boolean,
     active: Boolean

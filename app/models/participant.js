@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var Participant = new Schema({
-    key: String,
+    startedRecording: Number,
     uploadUrl: String,
     uploaded: Boolean
 });
