@@ -149,6 +149,7 @@ router.get('/segment', function(req, res) {
 	var readyTimestamp = req.param('readyTimestamp');
 
 	var segmentLength = 5000;
+	var sessionTimeout = 8000;
 
 	if (sessionCloseTasks[participantKey]) {
 		clearTimeout(sessionCloseTasks[participantKey]);
@@ -202,7 +203,7 @@ router.get('/segment', function(req, res) {
 
 					sessionCloseTasks[participantKey] = setTimeout(function() {
 						closeSession(participantKey);
-					}, 7000);
+					}, sessionTimeout);
 
 					res.statusCode = 200;
 					res.json({
@@ -254,7 +255,7 @@ router.get('/segment', function(req, res) {
 
 						sessionCloseTasks[participantKey] = setTimeout(function() {
 							closeSession(participantKey);
-						}, 7000);
+						}, sessionTimeout);
 
 						res.statusCode = 200;
 						res.json({
