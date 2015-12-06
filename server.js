@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var mongoose = require('mongoose');
 var uuid = require('node-uuid');
+var videoconcat = require('./app/videoconcatjs/videoconcat.js')
 var app = express();
 
 // Configure body parser
@@ -13,11 +14,20 @@ app.use(bodyParser.json());
 
 mongoose.connect('mongodb://localhost/flipcam');
 
+var videoReady = function(name) {
+    //TODO: save change of state to database
+    //for now just print to console
+    console.log(name+" is ready");
+}
+
+videoconcat.connect(videoReady);
+
 var Session = require('./app/models/session.js')
 var Participant = require('./app/models/participant.js')
 var Segment = require('./app/models/segment.js')
 
 var serverIp = "31.187.70.159";
+
 var port = 5000;
 
 var sessionCloseTasks = {};
@@ -269,6 +279,31 @@ function closeSession(participantKey) {
 		})
 	});
 }
+
+//TODO: call videoconcat.concat(data) when a task is required
+//TODO: REMOVE this
+router.get('/test', function(req, res) {
+    var data = {
+        "cuts": [{
+            "start": "00:00:00.0",
+            "stop": "00:00:02.0",
+            "video": "IMG_1985.MOV"
+        }, {
+            "start": "00:00:02.0",
+            "stop": "00:00:04.0",
+            "video": "IMG_0314.MOV"
+        }
+        ],
+        "output": "joined.MOV"
+    };
+
+    videoconcat.concat(data);
+	res.statusCode = 200;
+	res.json({
+		key: 'abc'
+	});
+});
+//end TODO
 
 router.get('/recordings', function(req, res) {
 	var readySessions = [];

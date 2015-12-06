@@ -1,17 +1,15 @@
 {
-	"session_key": "123",
-	"videos": ["blabla.m4v", "blibli.m4v"],
 	"cuts": [{
-		"start": 0,
-		"stop": 2,
+		"start": "00:00:00.0",
+		"stop": "00:00:02.0",
         "video": "IMG_1985.MOV"
 	}, {
-		"start": 2,
-		"stop": 4,
+		"start": "00:00:02.0",
+		"stop": "00:00:04.0",
         "video": "IMG_0314.MOV"
 	}, {
-		"start": 4,
-		"stop": 5,
+		"start": "00:00:04.0",
+		"stop": "00:00:05.0",
         "video": "IMG_1985.MOV"
 	}
     ],

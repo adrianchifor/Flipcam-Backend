@@ -10,11 +10,12 @@ channel = connection.channel()
 
 #create queue if it doesn't exist
 channel.queue_declare(queue=config["queue"])
+channel.queue_declare(queue=config["queue_complete"])
 
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
-def cut(video_path, start, end):
-    output = str(start)+"__"+video_path
+def cut(video_path, start, end, number):
+    output = str(number)+"__"+video_path
     call(["ffmpeg", "-i", video_path, "-ss", str(start), "-to", str(end), output])
     return output
 
@@ -30,18 +31,24 @@ def callback(ch, method, properties, body):
     job_data = json.loads(body)
     segments = []
     print " [x] Received new job"
-    print " [x]   session: ", job_data["session_key"]
-    print " [x]   videos: ", ", ".join(job_data["videos"])
+    number = 0
     for c in job_data["cuts"]:
-        segment = cut(c["video"], c["start"], c["stop"])
+        segment = cut(c["video"], c["start"], c["stop"], number)
+        number += 1
         print " [x]   cut ", c["video"], " from ", c["start"], " to ", c["stop"],". Saved to ", segment
         segments.append(segment)
 
     print " [x]   All videos cut"
+    os.remove(job_data['output'])
     concatenate(segments, job_data['output'])
     print " [x]   "
     for s in segments:
         os.remove(s)
+
+
+    channel.basic_publish(exchange='',
+                      routing_key=config["queue_complete"],
+                      body=job_data['output'])
 
 channel.basic_consume(callback,
                       queue=config["queue"],
