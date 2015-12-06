@@ -2,7 +2,12 @@
 import pika, json, os, time
 
 from config import config
-from subprocess import call
+from subprocess import call, Popen
+
+VIDEO_FOLDER = "/data/www/uploads/"
+HIDE_FFMPEG_OUT = True
+
+logfile = open('ffmpeg.log', 'w')
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host=config["server"]))
@@ -15,20 +20,30 @@ channel.queue_declare(queue=config["queue_complete"])
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
 def cut(video_path, start, end, number):
-    output = str(number)+"__"+video_path
-    call(["ffmpeg", "-i", video_path, "-ss", str(start), "-to", str(end), output])
+    output = str(number)+"__"+video_path+".mp4"
+    p = Popen(["ffmpeg", "-i", VIDEO_FOLDER+video_path, "-vf", "transpose=2", "-ss", str(start), "-to", str(end), VIDEO_FOLDER+output], stdout=logfile, stderr=logfile)
+    retcode = p.wait()
     return output
 
 def concatenate(videos, final_output):
-    f = open("list.txt", "w")
+    try:
+        os.remove("list.txt")
+    except OSError:
+        pass
+    data_to_write = ""
     for v in videos:
-        f.write("file '"+v+"'\n")
+        data_to_write += "file '"+VIDEO_FOLDER+v+"'\n"
+    f = open("list.txt", "w")
+    f.write(data_to_write)
     f.close()
-    call(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", final_output])
-    print " ".join(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", final_output])
+    p = Popen(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", VIDEO_FOLDER+final_output], stdout=logfile, stderr=logfile)
+    retcode = p.wait()
+    print " ".join(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", VIDEO_FOLDER+final_output])
 
 def callback(ch, method, properties, body):
     job_data = json.loads(body)
+    print "JSON data: "
+    print job_data
     segments = []
     print " [x] Received new job"
     number = 0
@@ -39,11 +54,14 @@ def callback(ch, method, properties, body):
         segments.append(segment)
 
     print " [x]   All videos cut"
-    os.remove(job_data['output'])
+
     concatenate(segments, job_data['output'])
     print " [x]   "
     for s in segments:
-        os.remove(s)
+        try:
+            os.remove(VIDEO_FOLDER+s)
+        except OSError:
+            pass
 
 
     channel.basic_publish(exchange='',
