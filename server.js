@@ -149,7 +149,7 @@ router.get('/segment', function(req, res) {
 	var readyTimestamp = req.param('readyTimestamp');
 
 	var segmentLength = 5000;
-	var sessionTimeout = 8000;
+	var sessionTimeout = 15000;
 
 	if (sessionCloseTasks[participantKey]) {
 		clearTimeout(sessionCloseTasks[participantKey]);
