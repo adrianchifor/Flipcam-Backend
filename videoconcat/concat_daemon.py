@@ -4,6 +4,8 @@ import pika, json, os, time
 from config import config
 from subprocess import call
 
+VIDEO_FOLDER = "/data/www/uploads/"
+
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host=config["server"]))
 channel = connection.channel()
@@ -16,16 +18,16 @@ print ' [*] Waiting for messages. To exit press CTRL+C'
 
 def cut(video_path, start, end, number):
     output = str(number)+"__"+video_path
-    call(["ffmpeg", "-i", video_path, "-ss", str(start), "-to", str(end), output])
+    call(["ffmpeg", "-i", VIDEO_FOLDER+video_path, "-ss", str(start), "-to", str(end), output])
     return output
 
 def concatenate(videos, final_output):
     f = open("list.txt", "w")
     for v in videos:
-        f.write("file '"+v+"'\n")
+        f.write("file '"+VIDEO_FOLDER+v+"'\n")
     f.close()
-    call(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", final_output])
-    print " ".join(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", final_output])
+    call(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", VIDEO_FOLDER+final_output])
+    print " ".join(["ffmpeg", "-f", "concat", "-i", "list.txt", "-c", "copy", VIDEO_FOLDER+final_output])
 
 def callback(ch, method, properties, body):
     job_data = json.loads(body)
