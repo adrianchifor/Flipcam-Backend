@@ -300,7 +300,7 @@ function closeSession(participantKey) {
 }
 
 function videoConcatenate(session) {
-	var cutsArray = [];
+	var data = {cuts: [], output: session.finalUrl};
 
 	Segment.find({
 		'_id': { $in: session.segments }
@@ -314,7 +314,10 @@ function videoConcatenate(session) {
 		}
 
 		for (var i = 0; i < segments.length; i++) {
-			Participant.findById(segments[i].participantKey, function(err, participant) {
+			var currentSegment = segments[i];
+			var index = i;
+
+			Participant.findById(currentSegment.participantKey, function(err, participant) {
 				if (err) {
 					return;
 				}
@@ -323,10 +326,10 @@ function videoConcatenate(session) {
 					return;
 				}
 
-				var startMs = parseInt(segments[i].startTimestamp) -
+				var startMs = parseInt(currentSegment.startTimestamp) -
 					parseInt(participant.startedRecording);
 
-				var stopMs = parseInt(segments[i].stopTimestamp) -
+				var stopMs = parseInt(currentSegment.stopTimestamp) -
 					parseInt(participant.startedRecording);
 
 				var cutpoint = {
@@ -335,16 +338,13 @@ function videoConcatenate(session) {
 					video: participant.uploadUrl
 				};
 
-				cutsArray.push(cutpoint);
+				data.cuts.push(cutpoint);
+
+				if (index == segments.length-1) {
+					videoconcat.concat(data);
+				}
 			});
 		}
-
-		var data = {
-	        cuts: cutsArray,
-	        output: session.finalUrl
-	    };
-
-		videoconcat.concat(data);
 	});
 }
 
