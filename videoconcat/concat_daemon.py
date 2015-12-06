@@ -9,6 +9,8 @@ HIDE_FFMPEG_OUT = True
 
 logfile = open('ffmpeg.log', 'w')
 
+VIDEO_FOLDER = "/data/www/uploads/"
+
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host=config["server"]))
 channel = connection.channel()
