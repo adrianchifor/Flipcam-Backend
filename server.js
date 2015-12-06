@@ -238,8 +238,6 @@ router.get('/segment', function(req, res) {
 	});
 });
 
-router.get('/recording', function(req, res) {
-	var participantKey = req.param('key');
 function closeSession(participantKey) {
 	Session.find({
 		participantKeys: participantKey
@@ -272,9 +270,35 @@ function closeSession(participantKey) {
 	});
 }
 
-	res.statusCode = 200;
-	res.json({
-		ready: true
+router.get('/recordings', function(req, res) {
+	var readySessions = [];
+
+	Session.find().where("ready").equals(true).limit(1000).exec(function(err, sessions) {
+		if (err) {
+			res.statusCode = 500;
+			res.json({
+				message: "Error"
+			});
+			return;
+		}
+
+		if (sessions.length == 0) {
+			res.statusCode = 404;
+			res.json({
+				message: "No recordings found"
+			});
+			return;
+		}
+
+		for (var i = 0; i < sessions.length; i++) {
+			readySessions.push({
+				videoUrl: "http://" + serverIp + "/uploads/" + sessions[i].finalUrl,
+				created: sessions[i].created
+			});
+		}
+
+		res.statusCode = 200;
+		res.json(JSON.stringify(readySessions));
 	});
 });
 
