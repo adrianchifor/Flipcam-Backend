@@ -50,12 +50,44 @@ router.get('/recording', function(req, res) {
 	});
 });
 
-router.post('/upload', multer({ dest: './uploads/'}).single('video'), function(req, res) {
+router.post('/upload', multer({ dest: '/data/www/uploads/'}).single('video'),
+	function(req, res) {
+
 	var participantKey = req.param('key');
 
-	res.statusCode = 200;
-	res.json({
-		message: "uploaded"
+	Participant.findById(participantKey, function(err, participant) {
+		if (err) {
+			res.statusCode = 500;
+			res.json({
+				message: "Error"
+			});
+			return;
+		}
+
+		if (!participant) {
+			res.statusCode = 500;
+			res.json({
+				message: "Error"
+			});
+			return;
+		}
+
+		participant.uploadUrl = req.file.filename;
+		participant.uploaded = true;
+		participant.save(function(err) {
+			if (err) {
+				res.statusCode = 500;
+				res.json({
+					message: "Error"
+				});
+				return;
+			}
+
+			res.statusCode = 200;
+			res.json({
+				message: "Uploaded"
+			});
+		});
 	});
 });
 
