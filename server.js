@@ -313,38 +313,49 @@ function videoConcatenate(session) {
 			return;
 		}
 
+		var participantKeysArray = [];
+
 		for (var i = 0; i < segments.length; i++) {
-			var currentSegment = segments[i];
-			var index = i;
+			participantKeysArray.push(segments[i].participantKey);
+		}
 
-			Participant.findById(currentSegment.participantKey, function(err, participant) {
-				if (err) {
-					return;
+		Participant.find({
+			'_id': { $in: participantKeysArray }
+		}).exec(function(err, participants) {
+			if (err) {
+				return;
+			}
+
+			if (participants.length == 0) {
+				return;
+			}
+
+			for (var i = 0; i < segments.length; i++) {
+				var participantTemp;
+				for (var j = 0; j < participants.length; j++) {
+					if (participants[j]._id == segments[i].participantKey) {
+						participantTemp = participants[j];
+						break;
+					}
 				}
 
-				if (!participant) {
-					return;
-				}
+				var startMs = parseInt(segments[i].startTimestamp) -
+					parseInt(participantTemp.startedRecording);
 
-				var startMs = parseInt(currentSegment.startTimestamp) -
-					parseInt(participant.startedRecording);
-
-				var stopMs = parseInt(currentSegment.stopTimestamp) -
-					parseInt(participant.startedRecording);
+				var stopMs = parseInt(segments[i].stopTimestamp) -
+					parseInt(participantTemp.startedRecording);
 
 				var cutpoint = {
 					start: parseInt(startMs)/1000,
 					stop: parseInt(stopMs)/1000,
-					video: participant.uploadUrl
+					video: participantTemp.uploadUrl
 				};
 
 				data.cuts.push(cutpoint);
+			}
 
-				if (index == segments.length-1) {
-					videoconcat.concat(data);
-				}
-			});
-		}
+			videoconcat.concat(data);
+		});
 	});
 }
 
