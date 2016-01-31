@@ -18,7 +18,7 @@ var Session = require('./app/models/session.js')
 var Participant = require('./app/models/participant.js')
 var Segment = require('./app/models/segment.js')
 
-var serverIp = "31.187.70.159";
+var serverIp = "[SERVER IP]";
 var port = 5000;
 
 var sessionCloseTasks = {};
