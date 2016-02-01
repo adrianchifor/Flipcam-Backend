@@ -12,7 +12,7 @@ The iOS client app can be found [here.](https://github.com/adrianchifor/Flipcam-
 - Install MongoDB, RabbitMQ, Python, ffmpeg, node.js, npm and pika (`pip install pika`)
 - Start MongoDB and RabbitMQ on localhost
 - Set your server IP in *server.js* 'serverIp' variable
-- Create the directory where the video files are going to be uploaded (/data/www/uploads)
+- Create the directory where the video files are going to be uploaded (*/data/www/uploads*)
 - Setup Nginx to serve files from */data/www*
 - Create an isolated Python environment:
 ```bash
@@ -36,7 +36,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
