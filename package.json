@@ -6,7 +6,7 @@
         "url": "https://github.com/adrianchifor/Flipcam-Backend"
     },
     "dependencies": {
-        "express": "~4.13.3",
+        "express": "~4.17.3",
         "body-parser": "~1.14.1",
         "mongoose": "~6.4.6",
         "multer": "~1.1.0",
